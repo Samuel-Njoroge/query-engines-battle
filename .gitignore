@@ -1,0 +1,20 @@
+# Generated data / results (regenerable via datagen and the benchmark runner)
+datasets/
+results/*.jsonl
+benchmark/reports/output/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# Docker
+*.log
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+
+.venv

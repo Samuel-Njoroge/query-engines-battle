@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!--
+  Config for the bitsondatadev/hive-metastore image (the same standalone
+  metastore image Trino's own getting-started docs use), mounted into
+  docker-compose.yml's hive-metastore service. Points the metastore at the
+  hive-metastore-db Postgres instance and at MinIO for S3A-backed storage.
+-->
+<configuration>
+  <property>
+    <name>javax.jdo.option.ConnectionURL</name>
+    <value>jdbc:postgresql://hive-metastore-db:5432/metastore</value>
+  </property>
+  <property>
+    <name>javax.jdo.option.ConnectionDriverName</name>
+    <value>org.postgresql.Driver</value>
+  </property>
+  <property>
+    <name>javax.jdo.option.ConnectionUserName</name>
+    <value>hive</value>
+  </property>
+  <property>
+    <name>javax.jdo.option.ConnectionPassword</name>
+    <value>hive</value>
+  </property>
+  <property>
+    <name>fs.s3a.endpoint</name>
+    <value>http://minio:9000</value>
+  </property>
+  <property>
+    <name>fs.s3a.access.key</name>
+    <value>minioadmin</value>
+  </property>
+  <property>
+    <name>fs.s3a.secret.key</name>
+    <value>minioadmin</value>
+  </property>
+  <property>
+    <name>fs.s3a.path.style.access</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>metastore.warehouse.dir</name>
+    <value>s3a://benchmark-data/warehouse/</value>
+  </property>
+</configuration>

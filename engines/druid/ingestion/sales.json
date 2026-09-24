@@ -1,0 +1,46 @@
+{
+  "type": "index_parallel",
+  "spec": {
+    "dataSchema": {
+      "dataSource": "sales",
+      "timestampSpec": { "column": "sale_timestamp", "format": "auto" },
+      "dimensionsSpec": {
+        "dimensions": [
+          { "type": "long", "name": "sale_id" },
+          { "type": "long", "name": "customer_id" },
+          { "type": "long", "name": "product_id" },
+          { "type": "long", "name": "quantity" }
+        ]
+      },
+      "metricsSpec": [
+        { "type": "doubleSum", "name": "amount", "fieldName": "amount" }
+      ],
+      "granularitySpec": {
+        "type": "uniform",
+        "segmentGranularity": "DAY",
+        "queryGranularity": "NONE",
+        "rollup": false
+      }
+    },
+    "ioConfig": {
+      "type": "index_parallel",
+      "inputSource": {
+        "type": "s3",
+        "properties": {
+          "endpointConfig": { "url": "minio:9000", "signingRegion": "us-east-1" },
+          "clientConfig": { "protocol": "http", "disableChunkedEncoding": true, "enablePathStyleAccess": true },
+          "credentialsConfig": { "accessKeyId": "minioadmin", "secretAccessKey": "minioadmin" }
+        },
+        "prefixes": ["s3://benchmark-data/${SCALE}/sales/"]
+      },
+      "inputFormat": { "type": "parquet" },
+      "appendToExisting": false
+    },
+    "tuningConfig": {
+      "type": "index_parallel",
+      "maxRowsPerSegment": 5000000,
+      "maxNumConcurrentSubTasks": 2,
+      "partitionsSpec": { "type": "dynamic" }
+    }
+  }
+}

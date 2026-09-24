@@ -1,0 +1,40 @@
+DRUID_XMX=1g
+DRUID_XMS=1g
+DRUID_MAXNEWSIZE=250m
+DRUID_NEWSIZE=250m
+DRUID_MAXDIRECTMEMORYSIZE=1g
+
+druid_emitter_logging_logLevel=info
+
+druid_extensions_loadList=["druid-histogram", "druid-datasketches", "druid-lookups-cached-global", "postgresql-metadata-storage", "druid-s3-extensions", "druid-avro-extensions", "druid-parquet-extensions"]
+
+druid_zk_service_host=druid-zookeeper
+
+druid_metadata_storage_type=postgresql
+druid_metadata_storage_connector_connectURI=jdbc:postgresql://druid-postgres:5432/druid
+druid_metadata_storage_connector_user=druid
+druid_metadata_storage_connector_password=druid
+
+druid_coordinator_balancer_strategy=cachingCost
+
+druid_indexer_runner_javaOptsArray=["-server", "-Xmx1g", "-Xms1g", "-XX:MaxDirectMemorySize=3g", "-Duser.timezone=UTC", "-Dfile.encoding=UTF-8"]
+druid_indexer_task_baseTaskDir=/opt/druid/var/druid/task
+
+# Deep storage - MinIO
+druid_storage_type=s3
+druid_storage_bucket=druid-deep-storage
+druid_storage_baseKey=segments
+druid_s3_endpoint_url=http://minio:9000
+druid_s3_accessKey=minioadmin
+druid_s3_secretKey=minioadmin
+druid_s3_enablePathStyleAccess=true
+druid_s3_protocol=http
+
+druid_indexer_logs_type=s3
+druid_indexer_logs_s3Bucket=druid-deep-storage
+druid_indexer_logs_s3Prefix=indexing-logs
+
+druid_processing_numThreads=2
+druid_processing_numMergeBuffers=2
+
+druid_sql_enable=true

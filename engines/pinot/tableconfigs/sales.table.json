@@ -1,0 +1,21 @@
+{
+  "tableName": "sales",
+  "tableType": "OFFLINE",
+  "segmentsConfig": {
+    "timeColumnName": "sale_timestamp",
+    "replication": "1",
+    "schemaName": "sales"
+  },
+  "tableIndexConfig": {
+    "loadMode": "MMAP",
+    "invertedIndexColumns": ["customer_id", "product_id"]
+  },
+  "ingestionConfig": {
+    "batchIngestionConfig": {
+      "segmentIngestionType": "APPEND",
+      "segmentIngestionFrequency": "DAILY"
+    }
+  },
+  "tenants": {},
+  "metadata": {}
+}

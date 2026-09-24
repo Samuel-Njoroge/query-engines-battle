@@ -1,0 +1,22 @@
+{
+  "tableName": "fact_events",
+  "tableType": "OFFLINE",
+  "segmentsConfig": {
+    "timeColumnName": "event_time",
+    "replication": "1",
+    "schemaName": "fact_events"
+  },
+  "tableIndexConfig": {
+    "loadMode": "MMAP",
+    "invertedIndexColumns": ["country", "event_type"],
+    "sortedColumn": ["event_time"]
+  },
+  "ingestionConfig": {
+    "batchIngestionConfig": {
+      "segmentIngestionType": "APPEND",
+      "segmentIngestionFrequency": "DAILY"
+    }
+  },
+  "tenants": {},
+  "metadata": {}
+}

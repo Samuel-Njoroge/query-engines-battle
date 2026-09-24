@@ -1,0 +1,20 @@
+{
+  "schemaName": "fact_events",
+  "dimensionFieldSpecs": [
+    { "name": "event_id", "dataType": "LONG" },
+    { "name": "customer_id", "dataType": "LONG" },
+    { "name": "country", "dataType": "STRING" },
+    { "name": "event_type", "dataType": "STRING" }
+  ],
+  "metricFieldSpecs": [
+    { "name": "amount", "dataType": "DOUBLE" }
+  ],
+  "dateTimeFieldSpecs": [
+    {
+      "name": "event_time",
+      "dataType": "TIMESTAMP",
+      "format": "1:MILLISECONDS:EPOCH",
+      "granularity": "1:MILLISECONDS"
+    }
+  ]
+}

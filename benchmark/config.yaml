@@ -1,0 +1,35 @@
+# Benchmark runner configuration - connection info per engine and the
+# warmup/measured run counts 
+
+warmup_runs: 2
+measured_runs: 5
+
+engines:
+  trino:
+    host: localhost
+    port: 8080
+    user: benchmark
+    catalog: hive
+    schema: benchmark
+    # Container names docker_stats.py polls for CPU/memory during each query.
+    containers: [trino]
+
+  doris:
+    host: localhost
+    port: 9030
+    user: root
+    password: ""
+    database: benchmark
+    containers: [doris-fe, doris-be]
+
+  drill:
+    rest_url: http://localhost:8047
+    containers: [drill]
+
+  pinot:
+    broker_url: http://localhost:8099
+    containers: [pinot-broker, pinot-server]
+
+  druid:
+    router_url: http://localhost:8888
+    containers: [druid-broker, druid-historical]

@@ -1,0 +1,260 @@
+# Bring up one engine at a time with Docker Compose profiles, e.g.:
+#   docker compose --profile trino up -d
+#   docker compose --profile doris up -d
+#   docker compose --profile drill up -d
+#   docker compose --profile pinot up -d
+#   docker compose --profile druid up -d
+#
+# `minio`/`minio-init` carry every engine's profile so the shared dataset store
+# always comes up alongside whichever engine you pick, without needing to run
+# all five stacks concurrently (see the plan's "Docker Compose profiles" note).
+
+networks:
+  benchmark:
+    driver: bridge
+
+volumes:
+  minio-data:
+  hive-metastore-db-data:
+  druid-postgres-data:
+
+services:
+  # ---------------------------------------------------------------------
+  # Shared dataset store (MinIO, S3-compatible) - used by every engine.
+  # ---------------------------------------------------------------------
+  minio:
+    image: minio/minio:RELEASE.2024-01-16T16-07-38Z
+    profiles: ["data", "trino", "doris", "drill", "pinot", "druid"]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    networks: [benchmark]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio-init:
+    image: minio/mc:RELEASE.2024-01-13T08-44-48Z
+    profiles: ["data", "trino", "doris", "drill", "pinot", "druid"]
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin} &&
+      mc mb -p local/benchmark-data &&
+      mc mb -p local/druid-deep-storage &&
+      exit 0
+      "
+    networks: [benchmark]
+
+  # ---------------------------------------------------------------------
+  # Trino - queries the shared Parquet dataset directly via Hive Metastore.
+  # ---------------------------------------------------------------------
+  hive-metastore-db:
+    image: postgres:16
+    profiles: ["trino"]
+    environment:
+      POSTGRES_DB: metastore
+      POSTGRES_USER: hive
+      POSTGRES_PASSWORD: hive
+    volumes:
+      - hive-metastore-db-data:/var/lib/postgresql/data
+    networks: [benchmark]
+
+  hive-metastore:
+    image: bitsondatadev/hive-metastore:latest
+    profiles: ["trino"]
+    depends_on: [hive-metastore-db, minio-init]
+    environment:
+      METASTORE_DB_HOSTNAME: hive-metastore-db
+    volumes:
+      - ./engines/trino/hive-metastore/metastore-site.xml:/opt/apache-hive-metastore-3.0.0-bin/conf/metastore-site.xml:ro
+    ports:
+      - "9083:9083"
+    networks: [benchmark]
+    mem_limit: 1g
+
+  trino:
+    build:
+      context: engines/trino
+    profiles: ["trino"]
+    depends_on: [hive-metastore]
+    ports:
+      - "8080:8080"
+    networks: [benchmark]
+    mem_limit: 4g
+
+  # ---------------------------------------------------------------------
+  # Drill - standalone (embedded ZK), queries the shared Parquet dataset
+  # directly via the `dfs` storage plugin (see engines/drill/conf).
+  # ---------------------------------------------------------------------
+  drill:
+    build:
+      context: engines/drill
+    profiles: ["drill"]
+    depends_on: [minio-init]
+    ports:
+      - "8047:8047"   # Web UI / REST API
+      - "31010:31010" # JDBC
+    networks: [benchmark]
+    mem_limit: 4g
+
+  # ---------------------------------------------------------------------
+  # Apache Doris - FE (metadata/planning) + BE (storage/execution). Data is
+  # loaded into Doris's own storage via engines/doris/ddl/load_from_s3.sql.
+  # ---------------------------------------------------------------------
+  doris-fe:
+    build:
+      context: engines/doris
+      args:
+        DORIS_ROLE: fe
+    profiles: ["doris"]
+    ports:
+      - "8030:8030" # HTTP
+      - "9030:9030" # MySQL protocol
+    networks: [benchmark]
+    mem_limit: 2g
+
+  doris-be:
+    build:
+      context: engines/doris
+      args:
+        DORIS_ROLE: be
+    profiles: ["doris"]
+    depends_on: [doris-fe]
+    ports:
+      - "8040:8040"
+    networks: [benchmark]
+    mem_limit: 4g
+
+  # ---------------------------------------------------------------------
+  # Apache Pinot - controller/broker/server. Data is loaded into Pinot's own
+  # segment storage via scripts/setup_pinot.py + engines/pinot/ingestion/.
+  # ---------------------------------------------------------------------
+  pinot-zookeeper:
+    image: zookeeper:3.9
+    profiles: ["pinot"]
+    networks: [benchmark]
+
+  pinot-controller:
+    build:
+      context: engines/pinot
+    profiles: ["pinot"]
+    command: StartController -zkAddress pinot-zookeeper:2181
+    depends_on: [pinot-zookeeper, minio-init]
+    ports:
+      - "9002:9000" # remapped on the host - 9000 is already taken by MinIO
+    networks: [benchmark]
+    mem_limit: 1g
+
+  pinot-broker:
+    build:
+      context: engines/pinot
+    profiles: ["pinot"]
+    command: StartBroker -zkAddress pinot-zookeeper:2181
+    depends_on: [pinot-controller]
+    ports:
+      - "8099:8099"
+    networks: [benchmark]
+    mem_limit: 1g
+
+  pinot-server:
+    build:
+      context: engines/pinot
+    profiles: ["pinot"]
+    command: StartServer -zkAddress pinot-zookeeper:2181
+    depends_on: [pinot-broker]
+    ports:
+      - "8098:8098"
+    networks: [benchmark]
+    mem_limit: 2g
+
+  # ---------------------------------------------------------------------
+  # Apache Druid - full cluster (coordinator/overlord, broker, historical,
+  # middleManager, router). Deep storage is MinIO; metadata store is Postgres.
+  # Data is loaded via scripts/submit_druid_ingestion.py.
+  # ---------------------------------------------------------------------
+  druid-zookeeper:
+    image: zookeeper:3.9
+    profiles: ["druid"]
+    networks: [benchmark]
+
+  druid-postgres:
+    image: postgres:16
+    profiles: ["druid"]
+    environment:
+      POSTGRES_DB: druid
+      POSTGRES_USER: druid
+      POSTGRES_PASSWORD: druid
+    volumes:
+      - druid-postgres-data:/var/lib/postgresql/data
+    networks: [benchmark]
+
+  druid-coordinator:
+    build:
+      context: engines/druid
+    profiles: ["druid"]
+    command: ["coordinator-overlord"]
+    env_file: engines/druid/environment
+    depends_on: [druid-zookeeper, druid-postgres, minio-init]
+    ports:
+      - "8081:8081"
+    networks: [benchmark]
+    mem_limit: 2g
+
+  druid-broker:
+    build:
+      context: engines/druid
+    profiles: ["druid"]
+    command: ["broker"]
+    env_file: engines/druid/environment
+    depends_on: [druid-coordinator]
+    ports:
+      - "8082:8082"
+    networks: [benchmark]
+    mem_limit: 2g
+
+  druid-historical:
+    build:
+      context: engines/druid
+    profiles: ["druid"]
+    command: ["historical"]
+    env_file: engines/druid/environment
+    depends_on: [druid-coordinator]
+    ports:
+      - "8083:8083"
+    networks: [benchmark]
+    mem_limit: 2g
+
+  druid-middlemanager:
+    build:
+      context: engines/druid
+    profiles: ["druid"]
+    command: ["middleManager"]
+    env_file: engines/druid/environment
+    depends_on: [druid-coordinator]
+    ports:
+      - "8091:8091"
+    networks: [benchmark]
+    mem_limit: 2g
+
+  druid-router:
+    build:
+      context: engines/druid
+    profiles: ["druid"]
+    command: ["router"]
+    env_file: engines/druid/environment
+    depends_on: [druid-coordinator, druid-broker]
+    ports:
+      - "8888:8888"
+    networks: [benchmark]
+    mem_limit: 1g

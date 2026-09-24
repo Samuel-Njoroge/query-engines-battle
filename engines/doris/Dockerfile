@@ -1,0 +1,6 @@
+ARG DORIS_ROLE=fe
+ARG DORIS_VERSION=2.1.7
+FROM apache/doris:${DORIS_ROLE}-${DORIS_VERSION}
+
+ARG DORIS_ROLE
+COPY conf/${DORIS_ROLE}.conf /opt/apache-doris/${DORIS_ROLE}/conf/${DORIS_ROLE}.conf

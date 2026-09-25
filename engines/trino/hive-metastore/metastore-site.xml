@@ -3,7 +3,8 @@
   Config for the bitsondatadev/hive-metastore image (the same standalone
   metastore image Trino's own getting-started docs use), mounted into
   docker-compose.yml's hive-metastore service. Points the metastore at the
-  hive-metastore-db Postgres instance and at MinIO for S3A-backed storage.
+  hive-metastore-db Postgres instance and at Garage (S3-compatible, see
+  docker-compose.yml's `garage` service) for S3A-backed storage.
 -->
 <configuration>
   <property>
@@ -24,15 +25,15 @@
   </property>
   <property>
     <name>fs.s3a.endpoint</name>
-    <value>http://minio:9000</value>
+    <value>http://garage:3900</value>
   </property>
   <property>
     <name>fs.s3a.access.key</name>
-    <value>minioadmin</value>
+    <value>GK86b64fdb0310ad7397228be5</value>
   </property>
   <property>
     <name>fs.s3a.secret.key</name>
-    <value>minioadmin</value>
+    <value>4d1395f9529c8e8b9a7f61d1d31bf46714e30fa1a03ee1600c5b1ba599c131b2</value>
   </property>
   <property>
     <name>fs.s3a.path.style.access</name>

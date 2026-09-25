@@ -1,5 +1,5 @@
--- Run once after `python scripts/upload_to_minio.py` has copied the generated
--- dataset into MinIO, e.g.:
+-- Run once after `python scripts/upload_to_s3.py` has copied the generated
+-- dataset into Garage (S3-compatible), e.g.:
 --   docker compose --profile trino exec trino trino --file /dev/stdin < engines/trino/ddl/create_tables.sql
 --
 -- Replace ${SCALE} with the scale tier used for datagen (tiny/small/medium/large).

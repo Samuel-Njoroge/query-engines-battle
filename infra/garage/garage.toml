@@ -1,0 +1,19 @@
+# Single-node Garage config for local benchmarking
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+db_engine = "sqlite"
+
+replication_factor = 1
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "garage:3901"
+rpc_secret = "ca2552ce54994575f1bf4f4a4aa4cb2e883748d76d6731451260ed3d2059eae2"
+
+[s3_api]
+s3_region = "us-east-1"
+api_bind_addr = "[::]:3900"
+root_domain = ".s3.garage.localhost"
+
+[admin]
+api_bind_addr = "[::]:3903"
+admin_token = "dev-only-admin-token-do-not-reuse"

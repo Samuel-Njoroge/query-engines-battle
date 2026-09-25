@@ -20,13 +20,13 @@ druid_coordinator_balancer_strategy=cachingCost
 druid_indexer_runner_javaOptsArray=["-server", "-Xmx1g", "-Xms1g", "-XX:MaxDirectMemorySize=3g", "-Duser.timezone=UTC", "-Dfile.encoding=UTF-8"]
 druid_indexer_task_baseTaskDir=/opt/druid/var/druid/task
 
-# Deep storage - MinIO
+# Deep storage - Garage (S3-compatible)
 druid_storage_type=s3
 druid_storage_bucket=druid-deep-storage
 druid_storage_baseKey=segments
-druid_s3_endpoint_url=http://minio:9000
-druid_s3_accessKey=minioadmin
-druid_s3_secretKey=minioadmin
+druid_s3_endpoint_url=http://garage:3900
+druid_s3_accessKey=GK86b64fdb0310ad7397228be5
+druid_s3_secretKey=4d1395f9529c8e8b9a7f61d1d31bf46714e30fa1a03ee1600c5b1ba599c131b2
 druid_s3_enablePathStyleAccess=true
 druid_s3_protocol=http
 
@@ -34,6 +34,14 @@ druid_indexer_logs_type=s3
 druid_indexer_logs_s3Bucket=druid-deep-storage
 druid_indexer_logs_s3Prefix=indexing-logs
 
+# The stock image's default druid.processing.buffer.sizeBytes (500MiB) times
+# numMergeBuffers below needs ~1000MiB of off-heap direct memory just for
+# buffer pools - combined with other JVM direct-memory use, that doesn't fit
+# in DRUID_MAXDIRECTMEMORYSIZE=1g above and crashes broker/historical at
+# startup with NO log output at all (confirmed via a modified-entrypoint
+# trace: the JVM never gets far enough to log anything). 100MiB keeps the
+# total comfortably under the 1g cap for this dev-scale deployment.
+druid_processing_buffer_sizeBytes=100000000
 druid_processing_numThreads=2
 druid_processing_numMergeBuffers=2
 

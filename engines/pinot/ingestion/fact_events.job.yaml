@@ -12,9 +12,9 @@ pinotFSSpecs:
     className: org.apache.pinot.plugin.filesystem.S3PinotFS
     configs:
       region: 'us-east-1'
-      accessKey: 'minioadmin'
-      secretKey: 'minioadmin'
-      endpoint: 'http://minio:9000'
+      accessKey: 'GK86b64fdb0310ad7397228be5'
+      secretKey: '4d1395f9529c8e8b9a7f61d1d31bf46714e30fa1a03ee1600c5b1ba599c131b2'
+      endpoint: 'http://garage:3900'
   - scheme: file
     className: org.apache.pinot.spi.filesystem.LocalPinotFS
 recordReaderSpec:

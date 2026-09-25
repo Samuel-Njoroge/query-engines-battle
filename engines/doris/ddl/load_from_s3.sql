@@ -6,11 +6,11 @@ LOAD LABEL benchmark.load_customers_${SCALE}
 )
 WITH S3
 (
-    "provider" = "MINIO",
-    "s3.endpoint" = "http://minio:9000",
+    "provider" = "S3",
+    "s3.endpoint" = "http://garage:3900",
     "s3.region" = "us-east-1",
-    "s3.access_key" = "minioadmin",
-    "s3.secret_key" = "minioadmin"
+    "s3.access_key" = "GK86b64fdb0310ad7397228be5",
+    "s3.secret_key" = "4d1395f9529c8e8b9a7f61d1d31bf46714e30fa1a03ee1600c5b1ba599c131b2"
 )
 PROPERTIES ("timeout" = "3600");
 
@@ -22,11 +22,11 @@ LOAD LABEL benchmark.load_products_${SCALE}
 )
 WITH S3
 (
-    "provider" = "MINIO",
-    "s3.endpoint" = "http://minio:9000",
+    "provider" = "S3",
+    "s3.endpoint" = "http://garage:3900",
     "s3.region" = "us-east-1",
-    "s3.access_key" = "minioadmin",
-    "s3.secret_key" = "minioadmin"
+    "s3.access_key" = "GK86b64fdb0310ad7397228be5",
+    "s3.secret_key" = "4d1395f9529c8e8b9a7f61d1d31bf46714e30fa1a03ee1600c5b1ba599c131b2"
 )
 PROPERTIES ("timeout" = "3600");
 
@@ -40,11 +40,11 @@ LOAD LABEL benchmark.load_sales_${SCALE}
 )
 WITH S3
 (
-    "provider" = "MINIO",
-    "s3.endpoint" = "http://minio:9000",
+    "provider" = "S3",
+    "s3.endpoint" = "http://garage:3900",
     "s3.region" = "us-east-1",
-    "s3.access_key" = "minioadmin",
-    "s3.secret_key" = "minioadmin"
+    "s3.access_key" = "GK86b64fdb0310ad7397228be5",
+    "s3.secret_key" = "4d1395f9529c8e8b9a7f61d1d31bf46714e30fa1a03ee1600c5b1ba599c131b2"
 )
 PROPERTIES ("timeout" = "7200");
 
@@ -58,11 +58,11 @@ LOAD LABEL benchmark.load_fact_events_${SCALE}
 )
 WITH S3
 (
-    "provider" = "MINIO",
-    "s3.endpoint" = "http://minio:9000",
+    "provider" = "S3",
+    "s3.endpoint" = "http://garage:3900",
     "s3.region" = "us-east-1",
-    "s3.access_key" = "minioadmin",
-    "s3.secret_key" = "minioadmin"
+    "s3.access_key" = "GK86b64fdb0310ad7397228be5",
+    "s3.secret_key" = "4d1395f9529c8e8b9a7f61d1d31bf46714e30fa1a03ee1600c5b1ba599c131b2"
 )
 PROPERTIES ("timeout" = "7200");
 

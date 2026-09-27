@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Upload a generated dataset (see datagen/generate.py) into the MinIO bucket
-that Trino, Drill, Doris, Pinot and Druid all ingest/query from.
+"""Upload a generated dataset (see datagen/generate.py) into the Garage
+(S3-compatible) bucket that Trino, Drill, Doris, Pinot and Druid all
+ingest/query from.
 
 Usage:
-    python scripts/upload_to_minio.py --scale tiny --dataset-dir datasets/
+    python scripts/upload_to_s3.py --scale tiny --dataset-dir datasets/
 
-Requires the `minio` docker-compose service (profile `data`) to be running.
+Requires the `garage` docker-compose service (profile `data`) to be running -
+it self-bootstraps the `benchmark-data` bucket and access key on first start,
+see infra/garage/entrypoint.sh.
 """
 
 from __future__ import annotations
@@ -18,6 +21,8 @@ import boto3
 from botocore.client import Config
 
 BUCKET = "benchmark-data"
+DEFAULT_ACCESS_KEY = "GK86b64fdb0310ad7397228be5"
+DEFAULT_SECRET_KEY = "4d1395f9529c8e8b9a7f61d1d31bf46714e30fa1a03ee1600c5b1ba599c131b2"
 
 
 def get_client(endpoint: str, access_key: str, secret_key: str):
@@ -29,12 +34,6 @@ def get_client(endpoint: str, access_key: str, secret_key: str):
         config=Config(signature_version="s3v4"),
         region_name="us-east-1",
     )
-
-
-def ensure_bucket(client, bucket: str) -> None:
-    existing = {b["Name"] for b in client.list_buckets().get("Buckets", [])}
-    if bucket not in existing:
-        client.create_bucket(Bucket=bucket)
 
 
 def upload_dir(client, local_dir: Path, bucket: str, prefix: str) -> int:
@@ -50,9 +49,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--scale", required=True, help="Scale tier under --dataset-dir to upload (e.g. tiny)")
     parser.add_argument("--dataset-dir", type=Path, default=Path("datasets"))
-    parser.add_argument("--endpoint", default=os.environ.get("MINIO_ENDPOINT", "http://localhost:9000"))
-    parser.add_argument("--access-key", default=os.environ.get("MINIO_ROOT_USER", "minioadmin"))
-    parser.add_argument("--secret-key", default=os.environ.get("MINIO_ROOT_PASSWORD", "minioadmin"))
+    parser.add_argument("--endpoint", default=os.environ.get("S3_ENDPOINT", "http://localhost:9000"))
+    parser.add_argument("--access-key", default=os.environ.get("S3_ACCESS_KEY", DEFAULT_ACCESS_KEY))
+    parser.add_argument("--secret-key", default=os.environ.get("S3_SECRET_KEY", DEFAULT_SECRET_KEY))
     args = parser.parse_args()
 
     local_dir = args.dataset_dir / args.scale
@@ -60,7 +59,6 @@ def main() -> None:
         raise SystemExit(f"{local_dir} does not exist - run datagen/generate.py --scale {args.scale} first")
 
     client = get_client(args.endpoint, args.access_key, args.secret_key)
-    ensure_bucket(client, BUCKET)
 
     total = upload_dir(client, local_dir, BUCKET, args.scale)
     print(f"Uploaded {total} Parquet files to s3://{BUCKET}/{args.scale}/")

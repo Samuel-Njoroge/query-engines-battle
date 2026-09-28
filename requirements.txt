@@ -8,7 +8,7 @@ trino>=0.328.0
 pymysql>=1.1
 requests>=2.31
 
-# Ingestion helpers (upload to MinIO, Pinot/Druid ingestion job submission)
+# Ingestion helpers (upload to Garage/S3, Pinot/Druid ingestion job submission)
 boto3>=1.34
 
 # Config / CLI

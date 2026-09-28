@@ -1,0 +1,17 @@
+id: high_cardinality_customer
+category: aggregations
+readme_section: "6.4 High-Cardinality Aggregation"
+description: >
+  Tests aggregation performance when grouping by a high-cardinality column
+  (customer_id). Pinot and Druid group-by engines have configurable in-memory
+  group limits (numGroupsLimit / groupBy maxResults) that can affect accuracy
+  at this cardinality - see notes below.
+primary_table: sales
+supported_engines: [trino, doris, drill, pinot, druid]
+notes:
+  pinot: >
+    Uses SQL-mode GROUP BY; increase `groupTrimThreshold`/`numGroupsLimit` via
+    query options if results look truncated at very large scales.
+  druid: >
+    Uses Druid's SQL GROUP BY (translated to a native groupBy query); increase
+    `groupByMaxResults`/`maxOnDiskStorage` via query context at large scales.

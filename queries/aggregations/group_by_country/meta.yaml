@@ -1,0 +1,7 @@
+id: group_by_country
+category: aggregations
+readme_section: "6.3 Aggregation"
+description: Tests a low-cardinality grouped analytical query.
+primary_table: fact_events
+supported_engines: [trino, doris, drill, pinot, druid]
+notes: {}

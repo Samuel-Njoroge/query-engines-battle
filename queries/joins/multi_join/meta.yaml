@@ -1,0 +1,9 @@
+id: multi_join
+category: joins
+readme_section: "6.6 Multi-Join Analytical Query"
+description: Tests more complex analytical workloads involving multiple joined tables.
+primary_table: sales
+supported_engines: [trino, doris, drill]
+notes:
+  pinot: "Not run - same reason as customer_join (no general distributed join support in OSS Pinot)."
+  druid: "Not run - same reason as customer_join (Druid SQL join is broadcast-only, not suited to two independent dimension joins at scale)."

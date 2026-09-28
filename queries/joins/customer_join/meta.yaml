@@ -1,0 +1,17 @@
+id: customer_join
+category: joins
+readme_section: "6.5 Join"
+description: Tests distributed join performance between a large fact table and a dimension table.
+primary_table: sales
+supported_engines: [trino, doris, drill]
+notes:
+  pinot: >
+    Not run. OSS Pinot does not support general distributed joins between two
+    segment-backed tables (only broker-side lookup joins against small lookup
+    tables), so this workload is not representative of how Pinot is meant to
+    be used. Documented per README section 6's closing note rather than forced.
+  druid: >
+    Not run. Druid SQL supports JOIN only as a broadcast join against a small
+    right-hand side loaded fully into memory on every data server; `customers`
+    is not guaranteed to fit that pattern at larger scales, so the join is
+    excluded rather than benchmarked unfairly.

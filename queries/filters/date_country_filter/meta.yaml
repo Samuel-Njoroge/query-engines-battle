@@ -1,0 +1,9 @@
+id: date_country_filter
+category: filters
+readme_section: "6.2 Filtering"
+description: >
+  Tests predicate evaluation and data skipping/filter pushdown on a partitioned
+  date column combined with a low-cardinality equality filter.
+primary_table: fact_events
+supported_engines: [trino, doris, drill, pinot, druid]
+notes: {}

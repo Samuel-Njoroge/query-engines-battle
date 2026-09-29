@@ -1,0 +1,14 @@
+id: cumulative_spend
+category: window-functions
+readme_section: "6.9 Window Functions"
+description: Tests advanced analytical processing via a partitioned, ordered window aggregate.
+primary_table: sales
+supported_engines: [trino, doris, drill, druid]
+notes:
+  pinot: >
+    Not run. OSS Pinot has no SQL window function support, so this workload is
+    not applicable and is documented rather than forced, per README section 6.
+  druid: >
+    Experimental. Druid SQL window functions require Druid 28+ with the
+    `enableWindowing` query context flag set; treat these results as
+    provisional relative to the other engines.

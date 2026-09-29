@@ -1,0 +1,9 @@
+id: full_table_scan
+category: scans
+readme_section: "6.1 Full Table Scan"
+description: >
+  Measures the ability of an engine to scan large volumes of data with no
+  filtering or grouping.
+primary_table: fact_events
+supported_engines: [trino, doris, drill, pinot, druid]
+notes: {}

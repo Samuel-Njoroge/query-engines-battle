@@ -1,0 +1,10 @@
+id: hourly_events
+category: time-series
+readme_section: "6.7 Time-Series Query"
+description: >
+  Hourly bucketed time-series aggregation with a time-range filter - the core
+  workload Druid and Pinot are purpose-built for.
+primary_table: fact_events
+supported_engines: [trino, doris, drill, pinot, druid]
+notes:
+  druid: "Uses TIME_FLOOR against __time (idiomatic Druid SQL) instead of DATE_TRUNC; event_time is mapped to __time at ingestion time."

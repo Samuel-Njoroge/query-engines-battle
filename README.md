@@ -455,31 +455,62 @@ The repository structure:
 ```text
 query-engines-battle/
 │
-├── engines/
-│   ├── trino/
-│   ├── doris/
-│   ├── drill/
-│   ├── pinot/
-│   └── druid/
+├── datagen/              # Synthetic dataset generator (customers, products, sales, fact_events)
+├── datasets/              # Generated Parquet output (gitignored, created by datagen)
 │
-├── datasets/
+├── infra/
+│   └── garage/            # Shared S3-compatible dataset store (Garage) every engine reads/writes
+│
+├── engines/
+│   ├── trino/              # Dockerfile, Hive catalog config, Hive Metastore config, external-table DDL
+│   ├── doris/               # Dockerfile (FE+BE), conf, table DDL, S3 load statements
+│   ├── drill/                # Dockerfile, storage-plugin + cluster-coordination config
+│   ├── pinot/                # Dockerfile, schemas, table configs, batch ingestion job specs
+│   └── druid/                # Dockerfile, shared environment, native batch ingestion specs
 │
 ├── queries/
 │   ├── scans/
 │   ├── filters/
 │   ├── aggregations/
 │   ├── joins/
-│   ├── time_series/
-│   └── window_functions/
+│   ├── time-series/
+│   └── window-functions/
+│       # Each named query is its own directory with a meta.yaml (support matrix +
+│       # notes on engines it's skipped for) and one <engine>.sql per supported engine
 │
 ├── benchmark/
-│   ├── runner/
-│   ├── metrics/
-│   └── reports/
+│   ├── config.yaml        # Engine connection info, warmup/measured run counts
+│   ├── runner/              # Per-engine clients + warmup/measured execution loop
+│   ├── metrics/             # docker-stats-based CPU/memory monitoring, result record builder
+│   └── reports/             # Aggregation (min/max/mean/median/p95/stdev) + Markdown/chart report
 │
-├── results/
+├── scripts/                # Ingestion glue: upload_to_s3.py, setup_pinot.py, submit_druid_ingestion.py
+├── results/                 # One .jsonl file per (engine, query, run) - gitignored
 │
-├── docker-compose.yml
+├── docker-compose.yml      # One Compose profile per engine (trino/doris/drill/pinot/druid)
+├── Makefile                 # Convenience targets wrapping the commands below
+├── requirements.txt
+├── .env.example
 │
 └── README.md
 ```
+
+### Quick start
+
+```bash
+make venv                        # create .venv/ and install requirements.txt
+
+make datagen SCALE=tiny          # generate the dataset (tiny = 1M rows, the dev default)
+
+make up-trino                    # bring up Trino + its dependencies (profile: trino)
+make upload SCALE=tiny           # upload the generated dataset to the shared Garage store
+make ingest-trino                # register external tables against it
+
+make bench-trino SCALE=tiny      # run every applicable query, 2 warmup + 5 measured runs
+make report SCALE=tiny           # aggregate results/ into benchmark/reports/output/
+```
+
+Swap `trino` for `doris`, `drill`, `pinot`, or `druid` to run the others - each brings up
+only its own containers (plus the shared Garage store), not all five at once. See each
+engine's ingestion target in the `Makefile` (`ingest-doris`, `ingest-pinot`, `ingest-druid`)
+for the extra one-time setup step some engines need before their first `bench-*` run.
